@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 #include <thread>
-#include "thread_safe_queue.h"
+#include "thread_safe_container/thread_safe_queue.h"
 
 class JoinThreads {
     std::vector<std::thread>& joiner;
@@ -30,13 +30,13 @@ private:
     JoinThreads joiner;
 
     void WorkThread() {
-        while (!done) {
-            if (auto work = workQueue.TryPop(); work.has_value()) {
-                (work.value())();
-            } else {
-                std::this_thread::yield();
-            }
-        }
+        // while (!done) {
+        //     if (auto work = workQueue.TryPop(); work.has_value()) {
+        //         (work.value())();
+        //     } else {
+        //         std::this_thread::yield();
+        //     }
+        // }
     }
 
 public:
@@ -46,7 +46,7 @@ public:
         const size_t SUPPORT_THREADS = std::thread::hardware_concurrency();
         const size_t NUMS_OF_THREADS = SUPPORT_THREADS ? 1 : SUPPORT_THREADS;
         for (size_t i = 0; i < NUMS_OF_THREADS; ++i) {
-            workQueue.emplace_back(std::thread(&WorkThread));
+            // workQueue.Push(std::thread(&WorkThread));
         }
     }
 
@@ -54,7 +54,7 @@ public:
         done = true;
     }
 
-    DISTALLOW_COPY_AND_MOVE();
+    DISTALLOW_COPY_AND_MOVE(SimpleThreadPool);
 
     template<typename Functype>
     void SignUpJob(Functype func) {

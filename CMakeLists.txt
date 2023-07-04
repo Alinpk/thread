@@ -13,7 +13,7 @@ set (${PROJECT_NAME}_VERSION_PATCH 1)
 set (${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 
 # Set compiler standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 
 include(${PROJECT_SOURCE_DIR}/cmake/target.cmake)
 include(${PROJECT_SOURCE_DIR}/dependence/dependence.cmake)

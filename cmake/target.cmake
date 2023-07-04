@@ -9,10 +9,10 @@ target_include_directories(${LIB_NAME}
         ${PROJECT_SOURCE_DIR}/include
 )
 
-file(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
-set_target_properties(${LIB_NAME} PROPERTIES PUBLIC_HEADER ${HEADER_FILES})
-get_target_property(temp_var ${LIB_NAME} PUBLIC_HEADER)
-message(public header include :: ${temp_var})
+# file(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
+# set_target_properties(${LIB_NAME} PROPERTIES PUBLIC_HEADER ${HEADER_FILES})
+# get_target_property(temp_var ${LIB_NAME} PUBLIC_HEADER)
+# message(public header include :: ${temp_var})
 
 # To add src file in current folder to library
 function(build_prj_lib_with_pub)
