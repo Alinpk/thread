@@ -3,7 +3,7 @@
 #include <mutex>
 #include <stack>
 #include <optional>
-#include "common.h"
+#include "util/pattern.h"
 
 template<typename T>
 class ThreadSafeStack {
@@ -20,23 +20,21 @@ public:
 
     DISTALLOW_COPY_AND_ASSIGN(ThreadSafeStack);
     
-    ~ThreadSafeStack() {
-        std::lock_guard<m> lk;
-        data.clear();
-    }
+    // 调用者保证析构时数据不被访问
+    ~ThreadSafeStack() = default;
 
     void Push(T elem) {
         std::lock_guard<std::mutex> lk(m);
         data.push(elem);
     }
 
-    std::option<T> TryPop() {
+    std::optional<T> TryPop() {
         std::lock_guard<std::mutex> lk(m);
         if (data.empty()) { 
             return std::nullopt;
         }
 
-        std::option<T> res(std::move(data.top()));
+        std::optional<T> res(std::move(data.top()));
         data.pop();
         return res;
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "util/pattern.h"
 #include <optional>
 #include <mutex>
 #include <queue>
