@@ -42,13 +42,10 @@ TEST(Util, TimerWheelTest)
     // dotick test
     {
         tw.DoTick();
-        printf("%s%d\n", __FILE__, __LINE__);
         EXPECT_EQ(cnt, 1);
         tw.DoTick();
-        printf("%s%d\n", __FILE__, __LINE__);
         EXPECT_EQ(cnt, 3);
         tw.DoTick();
-        printf("%s%d\n", __FILE__, __LINE__);
         EXPECT_EQ(cnt, 4);
     }
 }

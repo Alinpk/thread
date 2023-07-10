@@ -5,6 +5,7 @@ set(PROJECT_NAME thread_learning)
 
 # Define project
 project(${PROJECT_NAME})
+set(CMAKE_BUILD_TYPE Debug)
 
 # set a project version
 set (${PROJECT_NAME}_VERSION_MAJOR 0)

@@ -89,16 +89,13 @@ void TimerWheelSlot<T>::DoTick()
 {
     for(auto it = m_task.begin(); it != m_task.end();) {
         if (it->second.interval == 0U) {
-            printf("%s%d\n", __FILE__, __LINE__);
             it->second.cb();
             // 关联式容器 遍历过程中删除需要用到erase返回值，否则会发生未定义行为
             it = m_task.erase(it);
         } else {
-            printf("%s%d\n", __FILE__, __LINE__);
             it->second.interval -= 1;
             ++it;
         }
-        printf("%s%d\n", __FILE__, __LINE__);
     }
 }
 
@@ -150,8 +147,6 @@ bool TimerWheel<T, SLOT_NUM,SLOT_INTERVAL>::Delete(KeyT taskId)
 template<typename T, uint16_t SLOT_NUM, uint32_t SLOT_INTERVAL>
 void TimerWheel<T, SLOT_NUM,SLOT_INTERVAL>::DoTick()
 {
-    printf("%s%d\n", __FILE__, __LINE__);
     m_timerWheel[m_curSlot].DoTick();
-    printf("%s%d\n", __FILE__, __LINE__);
-    ++m_curSlot;
+    m_curSlot = (m_curSlot + 1) % SLOT_NUM;
 }
