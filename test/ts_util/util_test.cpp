@@ -1,8 +1,9 @@
 #include "util/decl_operator.h"
 #include "util/timer_wheel.h"
+#include "util/period.h"
+#include <thread>
 #include <functional>
 #include <gtest/gtest.h>
-
 
 namespace {
 int test_1() { return 1; }
@@ -48,4 +49,23 @@ TEST(Util, TimerWheelTest)
         tw.DoTick();
         EXPECT_EQ(cnt, 4);
     }
+}
+
+TEST(Util, PeriodTest)
+{
+    constexpr int sleepMs = 10;
+    {
+        PeriodCount<double, std::milli> pms;
+        pms.Start();
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+        pms.End();
+        EXPECT_TRUE(pms.Count() >= sleepMs);
+    }
+
+    double countMs = 0.0;
+    {
+        PeriodCount<double, std::milli> pms(&countMs);
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    }
+    EXPECT_TRUE(countMs >= sleepMs);
 }
