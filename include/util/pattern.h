@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PATTERN_H
+#define PATTERN_H
 
 #define DISALLOW_COPY(Typename) Typename(const Typename&) = delete;
 #define DISALLOW_ASSIGN(Typename) Typename& operator=(const Typename&) = delete;
@@ -40,3 +41,4 @@ private:
 
 template<typename T>
 T Singleton<T>::m_instance;
+#endif

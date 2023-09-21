@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PERIOD_H
+#define PERIOD_H
 
 #include <chrono>
 
@@ -52,3 +53,4 @@ private:
     T* m_counter{nullptr}; // 
     bool m_flag{false}; // 用来标识counter指针是否有效
 };
+#endif

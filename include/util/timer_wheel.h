@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TIMER_WHEEL_H
+#define TIMER_WHEEL_H
 #include <stdint.h>
 #include <array>
 #include <unordered_map>
@@ -150,3 +151,4 @@ void TimerWheel<T, SLOT_NUM,SLOT_INTERVAL>::DoTick()
     m_timerWheel[m_curSlot].DoTick();
     m_curSlot = (m_curSlot + 1) % SLOT_NUM;
 }
+#endif

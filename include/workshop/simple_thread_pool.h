@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SIMPLE_THREAD_POOL_H
+#define SIMPLE_THREAD_POOL_H
 
 #include <atomic>
 #include <functional>
@@ -60,5 +61,5 @@ public:
     void SignUpJob(Functype func) {
         workQueue.Push([cb = std::move(func)]() { cb(); })
     }
-
 };
+#endif
