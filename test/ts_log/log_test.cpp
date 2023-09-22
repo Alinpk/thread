@@ -19,6 +19,7 @@ TEST(Log, FmtTest)
     LOG_INFO("Start record from here");
     LOG_WARN("Today is {}", "Fri");
     LOG_ERROR("Flush {} times", 1);
+    // 后续补匹配检查
     deleteDirectory(fullPath.parent_path());
 }
 
