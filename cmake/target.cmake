@@ -9,6 +9,8 @@ target_include_directories(${LIB_NAME}
         ${PROJECT_SOURCE_DIR}/include
 )
 
+target_link_libraries(${LIB_NAME} PRIVATE fmt::fmt)
+
 # file(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
 # set_target_properties(${LIB_NAME} PROPERTIES PUBLIC_HEADER ${HEADER_FILES})
 # get_target_property(temp_var ${LIB_NAME} PUBLIC_HEADER)

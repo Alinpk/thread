@@ -1,14 +1,19 @@
-function(git_download url local_dir)
-    if(NOT EXISTS ${local_dir}/googletest)
-        message("cmd is:")
-        message("git clone ${url} -b ${branch} ${local_dir}")
-        execute_process(COMMAND git clone ${url} ${local_dir}/googletest)
+function(git_download url dir)
+    if(NOT EXISTS ${dir})
+        execute_process(COMMAND mkdir ${dir})
+        execute_process(COMMAND git clone ${url} ${dir})
     endif()
 endfunction()
 
-set(url "https://github.com/google/googletest.git")
+list(APPEND URL "https://github.com/Alinpk/googletest.git" "https://github.com/Alinpk/fmt.git")
+list(APPEND DIR googletest fmt)
+
 set(DEPEND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dependence")
 
-git_download(${url} ${DEPEND_DIR})
+foreach(repo IN ZIP_LISTS DIR URL)
+    set(dir ${DEPEND_DIR}/${repo_0})
+    set(url ${repo_1})
 
-add_subdirectory(${DEPEND_DIR}/googletest)
+    git_download(${url} ${dir})
+    add_subdirectory(${dir})
+endforeach()

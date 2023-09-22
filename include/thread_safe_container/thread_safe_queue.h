@@ -24,6 +24,8 @@ public:
 
     std::optional<T> Pop(int32_t ms = 0);
 
+    size_t Size();
+
 private:
     std::optional<T> PopImm();
     std::optional<T> PopFor(uint32_t ms);
@@ -81,5 +83,12 @@ std::optional<T> ThreadSafeQueue<T>::PopFor(uint32_t ms)
     } else {
         return std::nullopt;
     }
+}
+
+template<typename T>
+size_t ThreadSafeQueue<T>::Size()
+{
+    std::lock_guard<std::mutex> lk(m_mut);
+    return m_data.size();
 }
 #endif

@@ -15,6 +15,7 @@ set (${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}
 
 # Set compiler standard
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -fexperimental-library -stdlib=libc++")
 
 include(${PROJECT_SOURCE_DIR}/cmake/target.cmake)
 include(${PROJECT_SOURCE_DIR}/dependence/dependence.cmake)
