@@ -1,6 +1,8 @@
 /*
 An example of how to use timer in a threads-pool
 */
+#ifndef TIMER_THREAD_TEST_H
+#define TIMER_THREAD_TEST_H
 
 #include "util/timer_wheel.h"
 #include "workshop/simple_thread_pool.h"
@@ -110,3 +112,5 @@ void MutiThreadTimerWheel::DoTick()
     }
     m_timerWheel.DoTick();
 }
+
+#endif

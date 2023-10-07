@@ -11,46 +11,39 @@ std::condition_variable cv;
 std::atomic<uint8_t> g_wakeup = 0;
 std::atomic<bool> g_stop = false;
 
-// 另一种方式是用事件通知去告知所有线程
+
+// 这里使用锁和条件变量作为事件触发机制，另一种方式是用事件通知去告知所有线程
 // 比如创建n个管道来管理n个周期性线程（第n+1个线程则是定时器，定期休眠）
+void NotifyOnce()
+{
+    std::unique_lock<std::mutex> lck(mtx);
+    ++g_wakeup;
+    cv.notify_one();
+}
+
 void Regular()
 {
     while (!g_stop.load())
     {
-        static int cnt = 0;
-        {
-            std::unique_lock<std::mutex> lck(mtx);
-            ++g_wakeup;
-            cv.notify_one();
-        }
-        ++cnt;
-        if (cnt == 100) {
-            std::cout << "1s pass\n" << std::endl;
-            cnt = 0;
-        }
+        NotifyOnce();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    std::cout << "break regular" << std::endl;
+    // 确保定时器进程能在stop置为true之后再醒来一次退出循环
+    NotifyOnce();
 }
 
 void Timer()
 {
     while (!g_stop.load())
     {
-        static int cnt = 0;
         {
-            std::cout << cnt <<std::endl;
-            ++cnt;
             std::unique_lock<std::mutex> lck(mtx);
             cv.wait(lck, []()
                     { return g_wakeup > 0; });
-            std::cout << "timer wake up " << cnt << "times\n";
             --g_wakeup;
         }
         MutiThreadTimerWheel::instance().DoTick();
-        std::cout << "do tick finish\n\n";
     }
-    std::cout << "break timer" << std::endl;
 }
 
 TEST(WorkShop, TimerWheelInThreadPool)
@@ -77,7 +70,5 @@ TEST(WorkShop, TimerWheelInThreadPool)
 
     EXPECT_TRUE_FOR_X_MS(1000, numOpTest == 50);
     EXPECT_TRUE_FOR_X_MS(2000, ms > 1000);
-    std::cout << "numOpTest:" << static_cast<uint32_t>(numOpTest.load()) << std::endl;
-    std::cout << "ms:" << ms << std::endl;
     g_stop.store(true);
 }
