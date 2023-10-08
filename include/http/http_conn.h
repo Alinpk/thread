@@ -16,7 +16,8 @@
 #include <sys/mman.h>
 #include <stdarg.h>
 #include <errno.h>
-#include <sys/event.h>
+#include <sys/uio.h>
+#include <sys/epoll.h>
 
 class HttpConn {
 public:
@@ -83,7 +84,7 @@ private:
     HttpCode ParseRequestHeaders(char* text);
     HttpCode ParseRequestContent(char* text);
     HttpCode DoRequest();
-    char* GetLine() { return m_readBuf + m_startLine; }
+    char* GetLine() { return m_readBuffer + m_startLine; }
     LineStatus ParseLine();
 
     // Following functions is for [ProcessWrite]
@@ -92,7 +93,7 @@ private:
     bool AddContent(const char* content);
     bool AddStatusLine(int status, const char* title);
     bool AddHeaders(int contentLen);
-    bool AddContentLength(int contentLen)
+    bool AddContentLength(int contentLen);
     bool AddLinger();
     bool AddBlankLine();
 

@@ -1,4 +1,4 @@
-#include "http_conn.h"
+#include "http/http_conn.h"
 
 #define XX(http_state_no, title, form)                 \
     const char *HTTP_##http_state_no##_TITLE = #title; \
@@ -18,43 +18,39 @@ HTTP_MAP(XX)
 
 const char *DOC_ROOT = "/Users/huangzhujiang/home/prj/thread/resource";
 
-namespace
+int SetNonblocking(int fd)
 {
-    int SetNonblocking(int fd)
-    {
-        int old_option = fcntl(fd, F_GETFL);
-        int new_option = old_option | O_NONBLOCK;
-        fcntl(fd, F_SETFL, new_option);
-        return old_option;
-    }
+    int old_option = fcntl(fd, F_GETFL);
+    int new_option = old_option | O_NONBLOCK;
+    fcntl(fd, F_SETFL, new_option);
+    return old_option;
+}
 
-    void AddFd(int epollfd, int fd, bool oneShot)
+void AddFd(int epollfd, int fd, bool oneShot)
+{
+    epoll_event event;
+    event.data.fd = fd;
+    event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    if (oneShot)
     {
-        epoll_event event;
-        event.data.fd = fd;
-        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
-        if (oneShot)
-        {
-            event.events |= EPOLLONESHOT;
-        }
-
-        epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
-        SetNonblocking(fd);
+        event.events |= EPOLLONESHOT;
     }
+    epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
+    SetNonblocking(fd);
+}
 
-    void RemoveFd(int epollfd, int fd)
-    {
-        epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
-        close(fd)
-    }
+void RemoveFd(int epollfd, int fd)
+{
+    epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
+    close(fd);
+}
 
-    void ModFd(int epollfd, int fd, int ev)
-    {
-        epoll_event event;
-        event.data.fd = fd;
-        event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
-        epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
-    }
+void ModFd(int epollfd, int fd, int ev)
+{
+    epoll_event event;
+    event.data.fd = fd;
+    event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
 }
 
 int HttpConn::m_userCount = 0;
@@ -64,7 +60,7 @@ void HttpConn::CloseConn(bool realClose)
 {
     if (realClose && (m_sockfd != -1))
     {
-        removefd(m_epollfd, m_sockfd);
+        RemoveFd(m_epollfd, m_sockfd);
         m_sockfd = -1;
         m_userCount--;
     }
@@ -144,6 +140,8 @@ HttpConn::LineStatus HttpConn::ParseLine()
 
         return LINE_OPEN;
     }
+
+    return LINE_OPEN;
 }
 
 bool HttpConn::Read()
@@ -157,7 +155,7 @@ bool HttpConn::Read()
     while (1)
     {
         bytesRead = recv(m_sockfd, m_readBuffer + m_readIndex, READ_BUFFER_SIZE_LIMIT - m_readIndex, 0);
-        if (bytes_read == -1)
+        if (bytesRead == -1)
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
@@ -178,7 +176,7 @@ bool HttpConn::Read()
 // format[method|url|version]
 HttpConn::HttpCode HttpConn::ParseRequestLine(char* text)
 {
-    // 找到第一个" \t"所在位置，做切分，并将url指向该位置,metho指向前面一段
+    // 找到第一个" \t"所在位置，做切分，并将url指向该位置,methoc指向前面一段
     m_url = strpbrk(text, " \t");
     if (!m_url)
     {
@@ -199,7 +197,7 @@ HttpConn::HttpCode HttpConn::ParseRequestLine(char* text)
 
     // 把多余的" \t"消除
     m_url += strspn(m_url, " \t");
-    m_version = strpbrk();
+    m_version = strpbrk(text, " \t");
 
     if (!m_version) 
     {
@@ -214,7 +212,7 @@ HttpConn::HttpCode HttpConn::ParseRequestLine(char* text)
         return HttpCode::BAD_REQUEST;
     }
 
-    if (strcasecmp(m_url, "http://", 7) == 0)
+    if (strncasecmp(m_url, "http://", 7) == 0)
     {
         m_url += 7;
         m_url = strchr(m_url, '/');
@@ -251,7 +249,7 @@ HttpConn::HttpCode HttpConn::ParseRequestHeaders(char* text)
             m_linger = true;
         }
     }
-    else if (strcasecmp(text, "Content-Length:", 15) == 0)
+    else if (strncasecmp(text, "Content-Length:", 15) == 0)
     {
         text += 15;
         text += strspn(text, " \t");
@@ -351,7 +349,7 @@ HttpConn::HttpCode HttpConn::DoRequest()
         return HttpCode::NO_RESOURCE;
     }
 
-    if (!(m_fileStat.mode & S_IROTH))
+    if (!(m_fileStat.st_mode & S_IROTH))
     {
         return HttpCode::FORBIDDEN_REQUEST;
     }
@@ -385,13 +383,13 @@ bool HttpConn::Write()
     if (bytesToSend == 0)
     {
         ModFd(m_epollfd, m_sockfd, EPOLLIN);
-        Unit();
+        Init();
         return true;
     }
 
     while (1)
     {
-        temp = writev(m_sockfd, m_iv, m_iv_count);
+        temp = writev(m_sockfd, m_iv, m_ivCount);
         if (temp <= -1)
         {
             // 如果TCP写缓冲区没有空间，则等待下一轮EPOLLOUT事件。
@@ -435,7 +433,7 @@ bool HttpConn::AddResponse(const char* format, ...)
     }
     va_list arg_list;
     va_start(arg_list, format);
-    int len = vsnprintf(m_writeBuffer + m_writeIndex, WRITE_BUFFER_SIZE_LIMIT - 1 - m_writeIndex, format, arrg_list);
+    int len = vsnprintf(m_writeBuffer + m_writeIndex, WRITE_BUFFER_SIZE_LIMIT - 1 - m_writeIndex, format, arg_list);
 
     if (len >= (WRITE_BUFFER_SIZE_LIMIT - 1 - m_writeIndex))
     {
@@ -460,7 +458,7 @@ bool HttpConn::AddHeaders(int contentLen)
 
 bool HttpConn::AddContentLength(int contentLen)
 {
-    return AddResponse("Content-Lenght: %d\r\n", content_len);
+    return AddResponse("Content-Lenght: %d\r\n", contentLen);
 }
 
 bool HttpConn::AddLinger()
@@ -532,7 +530,7 @@ bool HttpConn::ProcessWrite(HttpCode ret)
                 m_iv[0].iov_len = m_writeIndex;
                 m_iv[1].iov_base = m_fileAddr;
                 m_iv[1].iov_len = m_fileStat.st_size;
-                m_iv_count = 2;
+                m_ivCount = 2;
                 return true;
             }
             else
@@ -554,6 +552,8 @@ bool HttpConn::ProcessWrite(HttpCode ret)
         m_ivCount = 1;
         return true;
     }
+    // expect never reach here
+    return false;
 }
 
 void HttpConn::Process()
