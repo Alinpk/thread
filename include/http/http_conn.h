@@ -94,7 +94,7 @@ private:
     bool AddHeaders(int contentLen);
     bool AddContentLength(int contentLen)
     bool AddLinger();
-    bool AddBlankLne();
+    bool AddBlankLine();
 
 public:
     // 所有socket上事件都被注册到同一个epoll内核事件表中

@@ -527,7 +527,7 @@ bool HttpConn::ProcessWrite(HttpCode ret)
             AddStatusLine(200, HTTP_200_TITLE);
             if (m_fileStat.st_size != 0)
             {
-                AddHeaders(m_file_stat.st_size);
+                AddHeaders(m_fileStat.st_size);
                 m_iv[0].iov_base = m_writeBuffer;
                 m_iv[0].iov_len = m_writeIndex;
                 m_iv[1].iov_base = m_fileAddr;
